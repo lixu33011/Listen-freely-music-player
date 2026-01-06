@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "conditions": [
+        { "mime": "text/html" }
+      ]
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/proxy.js?$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "*" },
+        { "key": "Access-Control-Allow-Methods", "GET,POST,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "Content-Type" }
+      ]
+    }
+  ]
+}
