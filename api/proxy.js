@@ -1,32 +1,31 @@
-const axios = require('axios');
-
+// api/proxy.js
 module.exports = async (req, res) => {
-  const baseUrl = 'https://mi.330115558.xyz';
-  const { path, query } = req;
-
-  // 设置跨域响应头
+  // 允许跨域（与 vercel.json 的 headers 配置呼应）
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // 处理 OPTIONS 预检请求
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
+  // 解析 URL 路径参数（对应 /api/xxx 中的 xxx）
+  const { pathname } = new URL(req.url, `http://${req.headers.host}`);
+  const pathSegments = pathname.replace(/^\/api\//, '').split('/');
+  const resource = pathSegments[0] || 'default';
+
   try {
-    const response = await axios({
-      method: req.method,
-      url: `${baseUrl}${path}`,
-      params: query,
-      data: req.body,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/118.0.0.0 Safari/537.36',
-        'Referer': 'https://music.163.com/'
-      }
-    });
-    res.status(200).json(response.data);
+    // 根据不同的路径逻辑处理请求
+    switch (resource) {
+      case 'hello':
+        return res.status(200).json({ message: 'Hello from proxy API!' });
+      case 'data':
+        return res.status(200).json({ data: 'Sample proxy data' });
+      default:
+        return res.status(404).json({ error: 'Resource not found' });
+    }
   } catch (error) {
-    res.status(500).json({ error: 'Proxy request failed', msg: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
